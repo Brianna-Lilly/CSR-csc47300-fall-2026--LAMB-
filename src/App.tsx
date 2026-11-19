@@ -1,6 +1,7 @@
 import { useState } from 'react';
 
 import FeatureView from './components/FeatureView';
+import DirectoryModal from './components/DirectoryModal';
 
 function App() {
 
@@ -109,27 +110,9 @@ function App() {
 
       {/* temporary for later full equipment modal - later feature
       cause i didnt get it to work yet :/*/}
-      {showDirectory && (
+      {showDirectory && ( /* added the Directory Modal */
 
-        <div className="report-modal">
-
-          <div className="report-modal-content directory-content-box">
-
-            <button
-              className="close-button"
-              onClick={() => setShowDirectory(false)}
-            />
-
-            <h2>Campus Equipment Directory</h2>
-
-            <p>
-              Live status and crowding for all elevators
-              and escalators on campus.
-            </p>
-
-          </div>
-
-        </div>
+        <DirectoryModal onClose={() => setShowDirectory(false)} />
 
       )}
 
