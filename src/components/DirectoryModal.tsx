@@ -1,0 +1,2 @@
+/*equipment directory pop up
+see reportmodal for use */

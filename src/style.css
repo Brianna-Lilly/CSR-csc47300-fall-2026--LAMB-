@@ -1,0 +1,449 @@
+body{
+  background-color: #87B37A;
+  font-family: Verdana, Geneva, Tahoma, sans-serif;
+  margin: 0;
+  padding: 0;
+}
+
+.container {
+  display: flex;
+  width: 100vw;
+  height: 100vh;
+  /* makes text bigger when hovering over building*/
+  &:has(.building-m:hover) .title-m,
+  &:has(.building-n:hover) .title-n,
+  &:has(.building-s:hover) .title-s{
+  transform: scale(1.6) translate(18.5%);
+  color: white;
+  }
+  /* makes building brighter when hovering over text/title*/
+  &:has(.title-m:hover) .building-m img,
+  &:has(.title-n:hover) .building-n img,
+  &:has(.title-s:hover) .building-s img {
+  filter: brightness(125%);
+  }
+}
+
+.side {
+  flex: 1;
+}
+
+.map-container img{
+  position: absolute;
+  width: 100%;
+  height: auto;
+}
+
+.building {
+  position: relative;
+  display: block;
+}
+
+.building img {
+  height: auto;
+  display: block;
+}
+
+.building-n {
+  top: 42vw;  
+  left: 12%;
+  width: 35%;
+}
+
+.building-s {
+  top: 20vw;  
+  left: 50%;
+  width: 25%;
+}
+
+.building-m {
+  top: 38vw;  
+  left: 46%;
+  width: 30%;
+}
+
+.building:hover img {
+  transform: scale(1.05);
+  cursor: url("/images/cursor.png"), pointer;
+}
+
+.title {
+  color: #e5ecf4;
+  font-size: 1.5vw;
+  position: relative;
+  display: block;
+  left: 14%;
+}
+
+.title:hover{
+  transform: scale(1.6) translate(18.5%);
+  color: white;
+}
+
+.title-n {
+  top: 47.4vw;  
+}
+
+.title-s {
+  top: 23.5vw;  
+}
+
+.title-m {
+  top: 45.2vw;  
+}
+
+/*hidden overlay - after clicking building*/
+.feature-view {
+  position: fixed;
+  inset: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.6);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+.feature-content {
+  position: relative;
+  background: #e5ecf4;
+  padding: 40px 30px 30px 30px; /*Preventing text from hitting button*/
+  border-radius: 8px;
+  width: 90%;
+  max-width: 500px;
+  max-height: 80vh; /*Stay on screen for Marshak*/
+  overflow-y: auto;  /*For Marshak because there are too many floors*/
+  z-index: 1001;
+  box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+}
+
+.close-button {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  background: #ef767a;
+  color: #e5ecf4;
+  border: none;
+  border-radius: 50%;
+  width: 32px;
+  height: 32px;
+  font-size: 16px;
+  font-weight: bold;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1002;
+}
+
+.close-button::before {
+content: "✕";
+}
+
+.close-button:hover {
+background: #ef767a;
+}
+
+/*When the user is prompted to choose the floor,
+it will look like elevator buttons. (Stylistic choice)*/
+.elevator-panel {
+display: grid;
+grid-template-columns: repeat(2, 60px);
+gap: 10px;
+background: #5b5b5b;
+padding: 15px;
+border-radius: 8px;
+width: fit-content;
+margin: 10px auto;
+box-shadow: inset 0 0 10px rgba(0,0,0,0.8);
+}
+
+.elevator-btn {
+background: radial-gradient(circle, #e0e0e0 60%, #b0b0b0 100%);
+border: 2px solid #555;
+border-radius: 50%;
+width: 50px;
+height: 50px;
+font-weight: bold;
+font-size: 16px;
+color: #222;
+cursor: pointer;
+box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+transition: all 0.1s ease;
+}
+
+.elevator-btn:active {
+background: radial-gradient(circle, #9ce37d 60%, #87B37A 100%);
+box-shadow: 0 2px 3px rgba(0,0,0,0.3);
+transform: translateY(2px);
+}
+
+/* Floorplan matches the elevator buttons */
+.floorplan-view-box {
+  background: #5b5b5b;
+  border-radius: 8px;
+  padding: 15px;
+  margin-top: 0;
+  min-height: 340px; /* Elevator-escalator box should be at least the size of the button panel */
+  text-align: center;
+  box-shadow: inset 0 0 10px rgba(0,0,0,0.8);
+}
+
+.floorplan-header-label {
+  font-weight: bold;
+  color: #ffffff;
+  margin-bottom: 10px;
+  font-size: 1.1rem;
+}
+
+.equipment-map-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 10px;
+}
+
+.status-badge {
+  font-size: 0.8rem;
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-weight: bold;
+}
+
+.status-badge.busy {
+  background: #fee2e2;
+  color: #dc2626;
+}
+
+.status-badge.normal {
+  background: #dcfce7;
+  color: #16a34a;
+}
+
+/* Split screen: button panel and floorplan */
+.floor-split-container {
+  display: flex;
+  gap: 15px;
+  align-items: flex-start;
+  text-align: left;
+}
+
+.split-left {
+  flex: 0 0 auto;
+  display: flex;
+  flex-direction: column;
+  padding-top: 0; /* Align left and right containers */
+}
+
+.split-right {
+  flex: 1;
+  overflow-y: auto;
+  max-height: 380px;
+  padding-top: 26px; /* Align with the floor buttons */
+}
+
+.active-floor-btn {
+  background: radial-gradient(circle, #9ce37d 60%, #87B37A 100%) !important;
+  border: 2px solid #2d6a4f !important;
+}
+
+/* Custom spacing for different buildings */
+.custom-layout-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 12px; /* NAC = Uniform vertical spacing for */
+}
+
+.equipment-row-pair {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 8px; 
+}
+
+/* 3-Column Grid for Marshak Elevators */
+.equipment-row-triplet {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 6px;
+  margin: 8px 0;
+}
+
+/* Hallway spacing between Marshak left and right elevators */
+.equipment-row-marshak { 
+  display: grid;
+  grid-template-columns: 1fr 72px 1fr;
+  align-items: center;
+  margin: 0;
+}
+
+.equipment-row-escalator {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin: 0; 
+}
+
+.equipment-grid-2x2 {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 8px; 
+  margin: 0; 
+}
+
+.map-node {
+  background: #e0e0e0 0%;
+  border: 2px solid #555;
+  color: #222;
+  padding: 8px;
+  border-radius: 6px;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.85rem;
+  box-shadow: 0 3px 5px rgba(0,0,0,0.2);
+  transition: all 0.1s ease;
+}
+
+.map-node:hover {
+  background: radial-gradient(circle, #9ce37d 60%, #87B37A 100%);
+  border-color: #2d6a4f;
+  transform: translateY(-2px);
+}
+
+.elevator-node {
+  border-left: 4px solid #3b82f6;
+}
+
+.escalator-node {
+  border-left: 4px solid #e02626;
+}
+
+.nac-gap-large {
+  margin-bottom: 72px;
+}
+
+.nac-gap-small {
+  margin-bottom: 24px;
+}
+
+#report-message {
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+#feature-description {
+position: relative;
+}
+
+/* Report Status popup */
+.report-modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.6);
+  display: none;              /* JS switches this to flex */
+  justify-content: center;
+  align-items: center;
+  z-index: 2000;              /* must be higher than .feature-view (1000) */
+}
+
+.report-modal-content {
+  position: relative;
+  background: #e5ecf4;
+  padding: 40px 30px 30px 30px;
+  border-radius: 8px;
+  width: 90%;
+  max-width: 450px;
+  max-height: 85vh;
+  overflow-y: auto;
+  box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+}
+
+.report-modal-content label {
+  display: block;
+  margin-top: 12px;
+  font-weight: bold;
+  font-size: 0.9rem;
+}
+
+.report-modal-content input,
+.report-modal-content select,
+.report-modal-content textarea {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 8px;
+  margin-top: 4px;
+  border: 1px solid #999;
+  border-radius: 4px;
+  font-family: inherit;
+}
+
+.report-submit {
+  margin-top: 16px;
+  width: 100%;
+  padding: 10px;
+  background: #477b45;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+.report-submit:hover {
+  background: #355b35;
+}
+
+.report-submit:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+#open-report-button {
+display: block;
+margin-top: 12px;
+padding: 10px 14px;
+background: #477b45;
+color: white;
+border: none;
+border-radius: 6px;
+cursor: pointer;
+font-weight: bold;
+}
+
+#open-report-button:hover {
+background: #355b35;
+}
+
+.directory-btn-container {
+  position: fixed;
+  bottom: 25px;
+  right: 100px;
+  z-index: 1000;
+}
+
+.floating-directory-btn {
+  background-color: #ffffff;
+  border: 2px solid #cbd5e1;
+  border-radius: 30px;
+  padding: 10px 20px;
+  cursor: pointer;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  font-weight: 600;
+  font-size: 0.95rem;
+  color: #1e293b;
+  font-family: inherit;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+
+.floating-directory-btn:hover {
+  background-color: #f8fafc;
+  border-color: #94a3b8;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.2);
+}
