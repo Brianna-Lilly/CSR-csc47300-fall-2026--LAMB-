@@ -447,3 +447,14 @@ background: #355b35;
   transform: translateY(-2px);
   box-shadow: 0 6px 16px rgba(0, 0, 0, 0.2);
 }
+
+.map-node.out-of-service {
+  background: #fee2e2;
+  border-color: #991b1b;
+  opacity: 0.85;
+}
+.status-error {
+  color: #991b1b;
+  font-size: 0.85rem;
+  margin: 0 0 10px 0;
+}

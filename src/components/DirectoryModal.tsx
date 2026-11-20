@@ -3,11 +3,12 @@ see reportmodal for use */
 
 import {
   buildingData,
-  calculateEquipmentStatus,
   getCrowdingLabel,
   getEquipmentKey,
+  getStatus,
   isEscalator,
 } from "../data/buildingData";
+import { useStatuses } from "../data/useStatuses";
 
 interface DirectoryModalProps {
   onClose: () => void;
@@ -23,6 +24,7 @@ interface DirectoryEntry {
 }
 
 function DirectoryModal({ onClose }: DirectoryModalProps) {
+  const { statuses, loading, error } = useStatuses();
   const seen = new Set<string>();
   const items: DirectoryEntry[] = [];
 
@@ -45,7 +47,7 @@ function DirectoryModal({ onClose }: DirectoryModalProps) {
         if (seen.has(key)) return;
         seen.add(key);
 
-        const status = calculateEquipmentStatus(key);
+        const status = getStatus(statuses, key);
         items.push({
           key,
           buildingTitle: building.title,
@@ -70,9 +72,11 @@ function DirectoryModal({ onClose }: DirectoryModalProps) {
         <p style={{ fontSize: "0.9rem", color: "#555" }}>
           Live status and crowding for all elevators and escalators on campus.
         </p>
+        {error && <p className="status-error">{error}</p>}
 
         <div id="directory-list-container" style={{ marginTop: "15px" }}>
-          {items.map((item) => {
+          {loading && <p>Loading...</p>}
+          {!loading && items.map((item) => {
             const isOutOfService = item.working === "no";
             const workingText = isOutOfService
               ? "Out of Service"

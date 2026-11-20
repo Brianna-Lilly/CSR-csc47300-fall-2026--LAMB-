@@ -19,23 +19,7 @@ export interface BuildingDataMap {
   [key: string]: BuildingInfo;
 }
 
-export interface ReportItem {
-  key: string;
-  email: string;
-  crowding: string;
-  working: string;
-  details: string;
-  timestamp: number;
-}
-
-export interface EquipmentStatusObject {
-  working: string;
-  confirmedAt: number;
-}
-
-export interface EquipmentStatusMap {
-  [key: string]: EquipmentStatusObject;
-}
+export type ReportResult = "changed" | "pending" | "none";
 
 export const buildingData: BuildingDataMap = {
   NAC: {
@@ -106,8 +90,7 @@ export const buildingData: BuildingDataMap = {
   },
 };
 
-const REPORTS_KEY = "campusEquipmentReports";
-const STATUS_KEY = "campusEquipmentStatus";
+const API_URL = import.meta.env.VITE_API_URL || "http://localhost:8000";
 
 export function isEscalator(name: string): boolean {
   return name.toLowerCase().includes("escalator");
@@ -124,67 +107,53 @@ export function getEquipmentKey(
   return `${buildingID}|${equipment}`;
 }
 
-export function getReports(): ReportItem[] {
-  return JSON.parse(localStorage.getItem(REPORTS_KEY) || "[]");
+export function getEquipmentOnFloor(buildingID: string, floor: number): string[] {
+  const building = buildingData[buildingID];
+  if (!building) return [];
+
+  const eq = building.equipment[floor] || building.equipment.default;
+  return [
+    ...(eq.frontElevators || []),
+    ...(eq.middleElevators || []),
+    ...(eq.backElevators || []),
+    ...(eq.escalators || []),
+  ];
 }
 
-export function getEquipmentStatus(): EquipmentStatusMap {
-  return JSON.parse(localStorage.getItem(STATUS_KEY) || "{}");
-}
-
-export function saveEquipmentStatus(statuses: EquipmentStatusMap): void {
-  localStorage.setItem(STATUS_KEY, JSON.stringify(statuses));
-}
-
-export function calculateEquipmentStatus(key: string): {
+export interface EquipmentState {
   working: string;
   crowding: string;
-} {
-  const now = Date.now();
-  const statuses = getEquipmentStatus();
-  const reports = getReports().filter((report) => report.key === key);
+}
 
-  let working = statuses[key];
+export type StatusMap = Record<string, EquipmentState>;
 
-  if (!working || now - working.confirmedAt >= 24 * 60 * 60 * 1000) {
-    working = {
-      working: "yes",
-      confirmedAt: 0,
-    };
-    statuses[key] = working;
-    saveEquipmentStatus(statuses);
-  }
+export interface NewReport {
+  key: string;
+  email: string;
+  working: string;
+  crowding: string;
+  details: string;
+}
 
-  const recentCrowding = reports.filter(
-    (report) =>
-      report.crowding !== "unknown" && now - report.timestamp < 30 * 60 * 1000
-  );
+export function getStatus(statuses: StatusMap, key: string): EquipmentState {
+  return statuses[key] || { working: "yes", crowding: "low" };
+}
 
-  let crowding = "unknown";
+export async function fetchStatuses(): Promise<StatusMap> {
+  const res = await fetch(`${API_URL}/api/status`);
+  if (!res.ok) throw new Error("Couldn't load equipment status");
+  return res.json();
+}
 
-  if (recentCrowding.length > 0) {
-    const counts: { [key: string]: number } = {};
-
-    recentCrowding.forEach((report) => {
-      counts[report.crowding] = (counts[report.crowding] || 0) + 1;
-    });
-
-    const highestCount = Math.max(...Object.values(counts));
-    const tiedLevels = Object.keys(counts).filter(
-      (level) => counts[level] === highestCount
-    );
-
-    const latest = recentCrowding
-      .filter((report) => tiedLevels.includes(report.crowding))
-      .sort((a, b) => b.timestamp - a.timestamp)[0];
-
-    crowding = latest.crowding;
-  }
-
-  return {
-    working: working.working,
-    crowding,
-  };
+export async function submitReport(report: NewReport): Promise<ReportResult> {
+  const res = await fetch(`${API_URL}/api/reports`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(report),
+  });
+  if (!res.ok) throw new Error("Couldn't send report");
+  const data = await res.json();
+  return data.result;
 }
 
 export function getCrowdingLabel(crowding: string): string {

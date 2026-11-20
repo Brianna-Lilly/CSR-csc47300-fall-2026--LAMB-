@@ -2,8 +2,15 @@ import { useState } from 'react';
 
 import {
   buildingData,
-  type EquipmentLists
-} from '../data/buildings';
+  getCrowdingLabel,
+  getEquipmentKey,
+  getStatus,
+  isEscalator,
+  type EquipmentLists,
+  type StatusMap
+} from '../data/buildingData';
+import { useStatuses } from '../data/useStatuses';
+import ReportModal from './ReportModal';
 
 interface FeatureViewProps {
   buildingID: string;
@@ -15,6 +22,9 @@ function FeatureView({ buildingID, onClose }: FeatureViewProps) {
   const building = buildingData[buildingID];
 
   const [selectedFloor, setSelectedFloor] = useState<number | null>(null);
+  const [showReport, setShowReport] = useState(false);
+  const [reportEquipment, setReportEquipment] = useState<string | null>(null);
+  const { statuses, loading, error, refresh } = useStatuses();
 
   if (!building) return null;
 
@@ -22,6 +32,11 @@ function FeatureView({ buildingID, onClose }: FeatureViewProps) {
   const equipment: EquipmentLists | null = selectedFloor !== null
     ? building.equipment[selectedFloor] || building.equipment.default
     : null;
+
+  const openReport = (name: string | null) => {
+    setReportEquipment(name);
+    setShowReport(true);
+  };
 
   return (
     <div className="feature-view">
@@ -36,6 +51,8 @@ function FeatureView({ buildingID, onClose }: FeatureViewProps) {
 
         {/* BUILDING NAME */}
         <h2>{building.title}</h2>
+
+        {error && <p className="status-error">{error}</p>}
 
         <div id="feature-description">
 
@@ -125,7 +142,11 @@ function FeatureView({ buildingID, onClose }: FeatureViewProps) {
 
                     <EquipmentLayout
                       buildingID={buildingID}
+                      floor={selectedFloor}
                       equipment={equipment!}
+                      statuses={statuses}
+                      loading={loading}
+                      onSelect={openReport}
                     />
 
                   </div>
@@ -150,10 +171,10 @@ function FeatureView({ buildingID, onClose }: FeatureViewProps) {
 
           )}
 
-          {/* REPORT BUTTON (doesnt work yet)*/}
           <button
             id="open-report-button"
             type="button"
+            onClick={() => openReport(null)}
           >
             Report Status
           </button>
@@ -162,22 +183,50 @@ function FeatureView({ buildingID, onClose }: FeatureViewProps) {
 
       </div>
 
+      {showReport && (
+        <ReportModal
+          buildingID={buildingID}
+          floor={selectedFloor}
+          equipment={reportEquipment}
+          onClose={() => setShowReport(false)}
+          onSubmitted={refresh}
+        />
+      )}
+
     </div>
   );
 }
 
 
-// Building equipment LAYOUT 
+// Building equipment LAYOUT
 //(aka how many floors/ equipment in each floor): see data folder
 interface EquipmentLayoutProps {
   buildingID: string;
+  floor: number;
   equipment: EquipmentLists;
+  statuses: StatusMap;
+  loading: boolean;
+  onSelect: (name: string) => void;
 }
 
 function EquipmentLayout({
   buildingID,
-  equipment
+  floor,
+  equipment,
+  statuses,
+  loading,
+  onSelect
 }: EquipmentLayoutProps) {
+
+  const node = (name?: string) => (
+    <EquipmentNode
+      key={name}
+      name={name}
+      status={name ? getStatus(statuses, getEquipmentKey(buildingID, floor, name)) : null}
+      loading={loading}
+      onSelect={onSelect}
+    />
+  );
 
   return (
 
@@ -194,20 +243,9 @@ function EquipmentLayout({
           }).map((_, index) => (
 
             <div className="equipment-row-marshak" key={index}>
-
-              <EquipmentNode
-                name={equipment.frontElevators?.[index]}
-                crowding="unknown"
-              />
-              
-
+              {node(equipment.frontElevators?.[index])}
               <div />
-
-              <EquipmentNode
-                name={equipment.middleElevators?.[index]}
-                crowding="unknown"
-              />
-
+              {node(equipment.middleElevators?.[index])}
             </div>
 
           ))}
@@ -224,11 +262,7 @@ function EquipmentLayout({
             equipment.frontElevators.length > 0 && (
 
             <div className="equipment-row-pair nac-gap-large">
-
-              {equipment.frontElevators.map((name) => (
-                <EquipmentNode key={name} name={name} crowding="unknown" />
-              ))}
-
+              {equipment.frontElevators.map(node)}
             </div>
 
           )}
@@ -237,11 +271,7 @@ function EquipmentLayout({
             equipment.escalators.length > 0 && (
 
             <div className="equipment-row-escalator nac-gap-small">
-
-              {equipment.escalators.map((name) => (
-                <EquipmentNode key={name} name={name} crowding="unknown" />
-              ))}
-
+              {equipment.escalators.map(node)}
             </div>
 
           )}
@@ -251,19 +281,11 @@ function EquipmentLayout({
 
             <>
               <div className="equipment-row-pair nac-gap-50">
-
-                {equipment.middleElevators.slice(0, 2).map((name) => (
-                  <EquipmentNode key={name} name={name} crowding="unknown" />
-                ))}
-
+                {equipment.middleElevators.slice(0, 2).map(node)}
               </div>
 
               <div className="equipment-row-pair nac-gap-large">
-
-                {equipment.middleElevators.slice(2, 4).map((name) => (
-                  <EquipmentNode key={name} name={name} crowding="unknown" />
-                ))}
-
+                {equipment.middleElevators.slice(2, 4).map(node)}
               </div>
             </>
 
@@ -273,11 +295,7 @@ function EquipmentLayout({
             equipment.backElevators.length > 0 && (
 
             <div className="equipment-row-pair">
-
-              {equipment.backElevators.map((name) => (
-                <EquipmentNode key={name} name={name} crowding="unknown" />
-              ))}
-
+              {equipment.backElevators.map(node)}
             </div>
 
           )}
@@ -290,11 +308,7 @@ function EquipmentLayout({
       {buildingID === 'Shepard' && (
 
         <div className="equipment-row-pair">
-
-          {equipment.frontElevators?.map((name) => (
-            <EquipmentNode key={name} name={name} crowding="unknown" />
-          ))}
-
+          {equipment.frontElevators?.map(node)}
         </div>
 
       )}
@@ -305,36 +319,47 @@ function EquipmentLayout({
 }
 
 
-//individual equipments levels
-type CrowdingLevel = "unknown" | "low" | "moderate" | "heavy";
-
+//individual equipment
 interface EquipmentNodeProps {
   name?: string;
-  crowding: CrowdingLevel;
+  status: { working: string; crowding: string } | null;
+  loading: boolean;
+  onSelect: (name: string) => void;
 }
 
-function EquipmentNode({ name, crowding }: EquipmentNodeProps) {
+function EquipmentNode({ name, status, loading, onSelect }: EquipmentNodeProps) {
 
-  if (!name) return null;
+  if (!name || !status) return null;
 
-  const crowdingLabels: Record<CrowdingLevel, string> = {
-    unknown: "Crowding Unknown",
-    low: "🐑 Low Traffic",
-    moderate: "🐑🐑🐑 Moderate",
-    heavy: "🐑🐑🐑🐑🐑 Heavy"
-  };
+  const { working, crowding } = status;
+  const down = working === "no";
 
-  const badgeClass =
-    crowding === "heavy" ? "busy" : "normal";
+  const typeClass = isEscalator(name) ? "escalator-node" : "elevator-node";
 
   return (
-    <div className="map-node elevator-node">
+    <div
+      className={`map-node ${typeClass} ${down ? "out-of-service" : ""}`}
+      title="Click to report status"
+      onClick={() => onSelect(name)}
+    >
 
       <span>{name}</span>
 
-      <span className={`status-badge ${badgeClass}`}>
-        {crowdingLabels[crowding]}
-      </span>
+      {loading ? (
+        <span className="status-badge normal">Loading...</span>
+      ) : (
+        <>
+          <span className={`status-badge ${down ? "busy" : "normal"}`}>
+            {down ? "Out of Service" : "In Service"}
+          </span>
+
+          {!down && (
+            <span className={`status-badge ${crowding === "heavy" ? "busy" : "normal"}`}>
+              {getCrowdingLabel(crowding)}
+            </span>
+          )}
+        </>
+      )}
 
     </div>
   );
