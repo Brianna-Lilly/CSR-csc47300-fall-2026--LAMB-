@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 
 import {
   buildingData,
@@ -22,9 +22,25 @@ function FeatureView({ buildingID, onClose }: FeatureViewProps) {
   const building = buildingData[buildingID];
 
   const [selectedFloor, setSelectedFloor] = useState<number | null>(null);
+  const [doorOpen, setDoorOpen] = useState(false);
   const [showReport, setShowReport] = useState(false);
   const [reportEquipment, setReportEquipment] = useState<string | null>(null);
   const { statuses, loading, error, refresh } = useStatuses();
+
+  // Open elevator doors after a floor is selected
+  useEffect(() => {
+    if (selectedFloor === null) {
+      setDoorOpen(false);
+      return;
+    }
+
+    setDoorOpen(false);
+    const frame = requestAnimationFrame(() => {
+      setDoorOpen(true);
+    });
+
+    return () => cancelAnimationFrame(frame);
+  }, [selectedFloor]);
 
   if (!building) return null;
 
@@ -133,21 +149,31 @@ function FeatureView({ buildingID, onClose }: FeatureViewProps) {
               {/* EQUIPMENT LAYOUT */}
               <div className="split-right">
 
-                <div
-                  className="floorplan-view-box"
-                  style={{ marginTop: 0 }}
-                >
+                {/* ELEVATOR DOORS OVER FLOORPLAN */}
+                <div className="floorplan-door-wrapper">
 
-                  <div className="custom-layout-grid">
+                  <div className={`elevator-door-overlay ${doorOpen ? 'open' : ''}`}>
+                    <div className="elevator-door left" />
+                    <div className="elevator-door right" />
+                  </div>
 
-                    <EquipmentLayout
-                      buildingID={buildingID}
-                      floor={selectedFloor}
-                      equipment={equipment!}
-                      statuses={statuses}
-                      loading={loading}
-                      onSelect={openReport}
-                    />
+                  <div
+                    className="floorplan-view-box"
+                    style={{ marginTop: 0 }}
+                  >
+
+                    <div className="custom-layout-grid">
+
+                      <EquipmentLayout
+                        buildingID={buildingID}
+                        floor={selectedFloor}
+                        equipment={equipment!}
+                        statuses={statuses}
+                        loading={loading}
+                        onSelect={openReport}
+                      />
+
+                    </div>
 
                   </div>
 
