@@ -463,46 +463,6 @@ position: relative;
     animation: none !important;
   }
 }
-/* Elevator Door
-.floorplan-door-wrapper {
-  position: relative;
-  overflow: hidden;
-  border-radius: 8px;
-}
-
-.elevator-door-overlay {
-  position: absolute;
-  inset: 0;
-  display: flex;
-  pointer-events: none;
-  z-index: 5;
-}
-
-.elevator-door {
-  flex: 1;
-  height: 100%;
-  background: linear-gradient(180deg, #9ca3af 0%, #6b7280 100%);
-  border: 2px solid #374151;
-  box-shadow: inset 0 0 12px rgba(0, 0, 0, 0.35);
-  transition: transform 1s cubic-bezier(0.22, 1, 0.36, 1);
-  transform: translateX(0);
-}
-
-.elevator-door.left {
-  border-right: 2px solid #1f2937;
-}
-
-.elevator-door.right {
-  border-left: 2px solid #1f2937;
-}
-
-.elevator-door-overlay.open .elevator-door.left {
-  transform: translateX(-100%);
-}
-
-.elevator-door-overlay.open .elevator-door.right {
-  transform: translateX(100%);
-} */
 
 /* Report Status popup */
 .report-modal {
@@ -590,6 +550,9 @@ background: #355b35;
   bottom: 25px;
   right: 100px;
   z-index: 1000;
+  display: flex;
+  gap: 10px;
+  align-items: center;
 }
 
 .floating-directory-btn {
@@ -619,8 +582,133 @@ background: #355b35;
   border-color: #991b1b;
   opacity: 0.85;
 }
+
 .status-error {
   color: #991b1b;
   font-size: 0.85rem;
   margin: 0 0 10px 0;
+}
+
+/* Night Mode */
+body.night-mode {
+  background-color: #1a241b;
+  color: #e2e8f0;
+  transition: background-color 0.25s ease, color 0.25s ease;
+}
+
+body.night-mode .map-container > img {
+  filter: brightness(0.72) contrast(1.08);
+}
+
+body.night-mode .building img {
+  filter: brightness(0.85);
+}
+
+body.night-mode .building:hover img,
+body.night-mode .container:has(.title-m:hover) .building-m img,
+body.night-mode .container:has(.title-n:hover) .building-n img,
+body.night-mode .container:has(.title-s:hover) .building-s img {
+  filter: brightness(1.15);
+}
+
+body.night-mode .feature-content,
+body.night-mode .report-modal-content {
+  background: #262626;
+  color: #f5f5f5;
+  border: 1px solid #4a4a4a;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.65);
+}
+
+/* Change panel & button color in night mode */
+/* body.night-mode .elevator-panel,
+body.night-mode .floorplan-view-box {
+  background: #0f172a;
+  box-shadow: inset 0 0 12px rgba(0, 0, 0, 0.9);
+}
+
+body.night-mode .elevator-btn {
+  background: radial-gradient(circle, #475569 60%, #334155 100%);
+  border-color: #64748b;
+  color: #f8fafc;
+}
+
+body.night-mode .active-floor-btn {
+  background: radial-gradient(circle, #4ade80 60%, #22c55e 100%) !important;
+  border-color: #86efac !important;
+  color: #052e16 !important;
+} */
+
+body.night-mode .map-node {
+  background: #383838;
+  border-color: #5c5c5c;
+  color: #f5f5f5;
+}
+
+body.night-mode .map-node:hover {
+  background: radial-gradient(circle, #22c55e 60%, #15803d 100%);
+  border-color: #86efac;
+  color: #ffffff;
+}
+
+body.night-mode .map-node.out-of-service {
+  background: #450a0a;
+  border-color: #ef4444;
+  color: #fecaca;
+}
+
+body.night-mode .status-error {
+  color: #fca5a5;
+}
+
+body.night-mode .status-badge.normal {
+  background: #14532d;
+  color: #bbf7d0;
+}
+
+body.night-mode .status-badge.busy {
+  background: #7f1d1d;
+  color: #fecaca;
+}
+
+body.night-mode .directory-item-card {
+  background-color: #2b2b2b;
+  color: #f1f5f9;
+  border-color: #444444;
+}
+
+body.night-mode .report-modal-content input,
+body.night-mode .report-modal-content select,
+body.night-mode .report-modal-content textarea {
+  background-color: #2b2b2b;
+  color: #f1f5f9;
+  border-color: #444444;
+}
+
+body.night-mode .floating-directory-btn {
+  background-color: #2b2b2b;
+  color: #f1f5f9;
+  border-color: #444444; 
+}
+
+body.night-mode .floating-directory-btn:hover {
+  background-color: #2b2b2b;
+  border-color: #444444;
+}
+
+/* Lamb Icon (Sleeping and Awake) Formatting*/
+.mode-lamb-icon {
+  width: 44px;
+  height: 44px;
+  object-fit: contain;
+  border-radius: 50%;
+  background-color: #ffffff;
+  border: 2px solid #cbd5e1;
+  padding: 4px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  transition: transform 0.2s ease, background-color 0.25s ease, border-color 0.25s ease;
+}
+
+body.night-mode .mode-lamb-icon {
+  background-color: #2b2b2b;
+  border-color: #444444;
 }
